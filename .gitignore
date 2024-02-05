@@ -2,3 +2,5 @@ client.py
 migration.py
 
 /treleadb/__pycache__
+
+.env
