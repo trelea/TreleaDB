@@ -161,7 +161,7 @@ The Expected Result Of Migration.
             "updated_at": "Thu Feb  8 23:19:24 2024",
             "__id": "8a4a6a88-d0f9-4e6c-9309-dc38a89c20c3"
         },
-        ...
+        { "more": "..." }
     ]
 }
 ```
@@ -210,14 +210,13 @@ print(json.dumps(users.data, indent=4))
 
 Expected Output Result From A Migration With Encryption Key.
 
-```text
-We can see that _Encryption Key has true value so lets look at collection file. 
+```json
 {
     "_Database": "NewApp",
     "_DatabasePath": "/home/treleadev/treleadb/NewApp",
     "_Collection": "Users",
     "_CollectionPath": "/home/treleadev/treleadb/NewApp/Users.json",
-    "_Encryption": true, // set to true
+    "_Encryption": true,
     "_Migration_created_at": "Thu Feb  8 23:24:05 2024",
     "_Migration_updated_at": "Thu Feb  8 23:24:05 2024",
     "Schema": {
@@ -237,7 +236,7 @@ We can see that _Encryption Key has true value so lets look at collection file.
             "updated_at": "Thu Feb  8 23:24:05 2024",
             "__id": "09051f6b-d0e4-48f9-80cb-ded42968d2c9"
         },
-        ...
+        { "more": "..." }
     ]
 }
 ```
