@@ -210,7 +210,7 @@ print(json.dumps(users.data, indent=4))
 
 Expected Output Result From A Migration With Encryption Key.
 
-```json
+```text
 We can see that _Encryption Key has true value so lets look at collection file. 
 {
     "_Database": "NewApp",
@@ -244,7 +244,7 @@ We can see that _Encryption Key has true value so lets look at collection file.
 
 Lets look at the content of file after using a secretKey
 
-```json
+```text
 //  ./NewApp/Users.json
 
 gAAAAABlxUhZD48c31B4dn50QmsqRO6RVCA7F-yKChgwxEr_EFLAZ-umXU1UZdekJtDjBMhsz
