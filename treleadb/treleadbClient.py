@@ -34,6 +34,7 @@ class TreleadbClient:
         
 
 
+
     def __ReadCollection__(self, collName: str) -> dict:
         with open(os.path.join(self.__dbPath, self.__dbName, f'{collName}.json'), 'r') as _f:
             if (self.__secretKey == None):
@@ -47,8 +48,10 @@ class TreleadbClient:
 
 
 
+
     def getCollections(self) -> list:
         return list(os.listdir(os.path.join(self.__dbPath, self.__dbName)))
+
 
 
 
@@ -64,12 +67,14 @@ class TreleadbClient:
 
 
 
+
     def select(self, collName: str) -> Self:
         if (not os.path.exists(os.path.join(self.__dbPath, self.__dbName, f'{collName}.json'))):
             raise Exception (f"Collection '{collName}' Not Found In '{self.__dbName}' Database.")
         self.__collection = collName
         return self
     
+
 
 
     def get(self, **keys: bool) -> Self:
@@ -87,6 +92,7 @@ class TreleadbClient:
             self.data.append(dataRow)
 
         return self
+
 
 
 
