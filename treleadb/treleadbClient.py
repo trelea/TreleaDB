@@ -142,7 +142,7 @@ class TreleadbClient:
             if (self.__secretKey == None):
                 _f.write(json.dumps(collection))
             else:
-                data = Fernet(self.__secretKey).encrypt(bytes(json.dumps(collection).encode('utf-8')))
+                data = Fernet(self.__secretKey).encrypt(bytes(json.dumps(collection, default=str).encode('utf-8')))
                 _f.write(str(data.decode('utf-8')))
             _f.close()
 

@@ -98,7 +98,7 @@ class Database:
         self.data = self.__data
         if (self.__secretKey):
             fernet = Fernet(self.__secretKey)
-            self.__data = fernet.encrypt(bytes(json.dumps(self.__data).encode('utf-8')))
+            self.__data = fernet.encrypt(bytes(json.dumps(self.__data, default=str).encode('utf-8')))
             
         with open(os.path.join(self.__dbPath, self.__dbName, f'{self.__collection}.json'), 'w') as _f:
             if (type(self.__data).__name__ == 'bytes'):
@@ -113,7 +113,14 @@ class Database:
 
 
 
-    def dropCollection(self, collName: str):
+    def dropDatabase(self) -> None:
+        if (not os.path.exists(os.path.join(self.__dbPath, self.__dbName))):
+            raise Exception (f"Invalid Database '{self.__dbName}'")
+        return os.rmdir(os.path.join(self.__dbPath, self.__dbName))
+
+        
+
+    def dropCollection(self, collName: str) -> None:
         if (not os.path.exists(os.path.join(self.__dbPath, self.__dbName, f'{collName}.json'))):
-            raise Exception (f"Invalid Collection {collName} In Database {self.__dbName}")
+            raise Exception (f"Invalid Collection '{collName}' In Database '{self.__dbName}'")
         return os.remove(os.path.join(self.__dbPath, self.__dbName, f'{collName}.json'))

@@ -264,3 +264,203 @@ o4Q6pZQFm8h4jvV-5m44WRbNU1GbO-LmIepolfeu_j3hZxsRUbpl4JEWUoUoTgwADVeoonM1e
 FVCO466T_bcpxspMbGTvsr35nUDeAnXpQurkgmq4jNkOk_sV8t9WqdDG6QvhXYIMfwrhK1kVu
 ...
 ```
+
+## TreleaDB Client
+### TreleadbClient is a class that provides the general queries for database manipulation. Must use TreleadbClient only for CRUD operations.
+
+### If you want to create, migarte, or drop somthing then you must use Database class.
+
+Here is a full example for using TreleadbClient with Database.
+
+```python
+# migration.py file
+from treleadb import Database
+from datetime import date
+
+myDb = Database(dbName="RedditClone", secretKey="qwerty")
+
+# Users Collection
+myDb.setupCollection('Users').modelSchema({
+    'user_name': str,
+    'user_email': str,
+    'user_dateOfBirth': date,
+    'user_password': str,
+    'user_thumbnail': str,
+    'user_isVerified': bool
+}).migrate()
+
+# Posts Collection
+myDb.setupCollection('Posts').modelSchema({
+    'user_name': str,
+    'post_title': str,
+    'post_description': str,
+    'post_thumbnail': str,
+    'post_likes': list,
+    'post_comments': int
+}).migrate()
+
+# Comments Collection
+myDb.setupCollection('Comments').modelSchema({
+    'post_id': str,
+    'user_name': str,
+    'comment_text': str
+}).migrate()
+```
+Run this command in terminal.
+```bash
+python3 ./migration.py
+```
+
+Lets see if collections were created using TreleadbClient class.
+
+```python
+# client.py
+from treleadb import TreleadbClient
+import json
+
+# Very Important !!! If you used a secretKey on migration you also need to use it on client side.
+db = TreleadbClient(dbName="RedditClone", secretKey="qwerty")
+
+# classMethod -> getCollections() -> get all collections from specific database.
+collections = db.getCollections()
+print("Collections: ", collections)
+
+# classMethod -> getCollection(collName: str, Schema: bool = False) -> get a collection...
+
+# If second parameter 'Schema' is True then getCollection() will return the data plus collection Schema.
+
+users_collection = db.getCollection('Users')
+print("Users Collection: ", json.dumps(users_collection, indent=4))
+
+users_collection = db.getCollection('Users', Schema=True)
+print("Users Collection Schema True: ",json.dumps(users_collection, indent=4))
+```
+Run this command in terminal.
+```bash
+python3 ./client.py
+```
+Lets Preview output.
+```text
+Collections:  ['Posts.json', 'Users.json', 'Comments.json']
+
+Users Collection:  []
+
+Users Collection Schema True:  {
+    "_Database": "RedditClone",
+    "_DatabasePath": "/home/treleadev/treleadb/RedditClone",
+    "_Collection": "Users",
+    "_CollectionPath": "/home/treleadev/treleadb/RedditClone/Users.json",
+    "_Encryption": true,
+    "_Migration_created_at": "Fri Feb  9 21:04:16 2024",
+    "_Migration_updated_at": "Fri Feb  9 21:04:16 2024",
+    "Schema": {
+        "user_name": "str",
+        "user_email": "str",
+        "user_dateOfBirth": "datetime",
+        "user_password": "str",
+        "user_thumbnail": "str",
+        "user_isVerified": "bool",
+        "created_at": "str",
+        "updated_at": "str",
+        "__id": "str"
+    },
+    "Data": []
+}
+```
+
+## Insert Data Using TreleadbClient
+
+### You can insert data into a specific collection using TreleadbClient queries.
+
+Here is an example of inserting data in collection Users.
+
+```python
+# client.py
+from treleadb import TreleadbClient
+import datetime
+import json
+
+db = TreleadbClient(dbName="RedditClone", secretKey="qwerty")
+
+# Very Important !!! Respect the Schema Rule
+# Lets insert two user objects in Users collection
+db.select('Users').insert({
+    'user_name': 'miguel',
+    'user_email': 'miguel_ann@dotnet.net',
+    'user_dateOfBirth': datetime.date(2000, 12, 10),
+    'user_password': 'koniciua_1234',
+    'user_thumbnail': 'url_path_thumb.jpg',
+    'user_isVerified': True
+})
+db.select('Users').insert({
+    'user_name': 'angela',
+    'user_email': 'angela_simone12@gmail.roro',
+    'user_dateOfBirth': datetime.date(2005, 3, 20),
+    'user_password': 'angelaKeyword',
+    'user_thumbnail': 'url_path_thumb.jpg',
+    'user_isVerified': False
+})
+
+# Output
+users_data = db.getCollection('Users', Schema=True)
+print(json.dumps(users_data, indent=4))
+```
+Run this command in terminal.
+```bash
+python3 ./client.py
+```
+Lets see the result in terminal.
+```json
+{
+    "_Database": "RedditClone",
+    "_DatabasePath": "/home/treleadev/treleadb/RedditClone",
+    "_Collection": "Users",
+    "_CollectionPath": "/home/treleadev/treleadb/RedditClone/Users.json",
+    "_Encryption": true,
+    "_Migration_created_at": "Fri Feb  9 21:39:44 2024",
+    "_Migration_updated_at": "Fri Feb  9 21:39:44 2024",
+    "Schema": {
+        "user_name": "str",
+        "user_email": "str",
+        "user_dateOfBirth": "date",
+        "user_password": "str",
+        "user_thumbnail": "str",
+        "user_isVerified": "bool",
+        "created_at": "str",
+        "updated_at": "str",
+        "__id": "str"
+    },
+    "Data": [
+        {
+            "user_name": "miguel",
+            "user_email": "miguel_ann@dotnet.net",
+            "user_dateOfBirth": "2000-12-10",
+            "user_password": "koniciua_1234",
+            "user_thumbnail": "url_path_thumb.jpg",
+            "user_isVerified": true,
+            "created_at": "Fri Feb  9 21:39:45 2024",
+            "updated_at": "Fri Feb  9 21:39:45 2024",
+            "__id": "f3139a92-e65f-4a3f-8075-24830dd66afa"
+        },
+        {
+            "user_name": "angela",
+            "user_email": "angela_simone12@gmail.roro",
+            "user_dateOfBirth": "2005-03-20",
+            "user_password": "angelaKeyword",
+            "user_thumbnail": "url_path_thumb.jpg",
+            "user_isVerified": false,
+            "created_at": "Fri Feb  9 21:39:45 2024",
+            "updated_at": "Fri Feb  9 21:39:45 2024",
+            "__id": "a2eff607-76e9-4cc5-80b2-53fbe0a42178"
+        }
+    ]
+}
+```
+
+Lets check the content of Users collection.
+```bash
+cat ~/treleadb/RedditClone/Users.json
+
+gAAAAABlxn-Bg_IjtJ62NlhnJOJNjgSg4QZtS8_dPkMgAwMJEIGzR01WSlIb6J39PSAySfWpbKHk9Ys_mg381gGufoxSWxBqbd-rFloxcKpJAfm5wLb561CXAptY2iAOAqX3fqtWtuiO13RNnsoeA9teref4P7MB2zHbd6tXz1imAInMhpmKjH-MhPV-GCKvNyruNNn8-pno_7so3Pei3SG3fiwc-XsNdj0nis8LbYbVn4M9b-6ng1gy0seYPilcW-X5bDKEcbqrtubVrgY8c3L94TrW1rG1Z0Nj38mvFDndwk4AUrNlr-KAPYHroo8C6-PbJLTJ6VOeQLGksNXSY5SaJpL6x-n7TnDavz5j-WhlFAWp9P9ZPQKkCi9C55JG6QABIebom7KNUkVfUCkJgcRrxiRRqaKQr5RzTp4IP7xK0qi55PZ_XjQVVYPOqgzh-HcxF7PBPY8MIOoP6HtEzsakNZjZvXcNrjfs9VUCeuKzk31ZuXUvb6yCUmfAYXQBA7wc0A9MhTkQTtHwYSDEREu-xrdkYdSGWjzEE1bE28cRgJkN_bqOc5HYEBzOoV0XHxVF09P6iCyZfo4Ds6m9g-pJmhbTbx1-Z5eHQntBF0ZTlxtHpNlGFyn3TO4XIKufAeYEtA2JTxLVV4QvCVKgdH03-0u2_1tFDknQsRuBro0cVTdqFxAamVnSJAx-BUSvHBOiRztu2iZclv-TP0L3lNew9M1NVMfn2563vTC59YGxNELp1rmImCPqHAbNru_ww9hcpD0VR1ECxTGq_cBStJYUfC2wJAO3BgQ1-Mm7mgc5WGaoXVr6ZVvsl43CT2QxYyOn8SPM
+...
+```
