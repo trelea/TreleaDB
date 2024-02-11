@@ -84,10 +84,9 @@ class Database:
                 dataValuesTypes = [type(i).__name__ for i in _.values()]
                 schemaValuesTypes = [j for j in self.__data['Schema'].values()]
 
-                print(dataValuesTypes)
-                print(schemaValuesTypes[:-3])
-                    
                 if (dataValuesTypes != schemaValuesTypes[:-3]):
+                    print(dataValuesTypes)
+                    print(schemaValuesTypes[:-3])
                     raise Exception (f"Invalid Schema '{_}' For Migration")
                 
                 _['created_at'] = time.ctime()

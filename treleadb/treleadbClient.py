@@ -16,7 +16,10 @@ class TreleadbClient:
         self.__dbName = dbName
         self.__collection: str = None
         self.__secretKey: str = None
-        self.data: list = [] 
+        self.data: list = []
+
+        self.__updateQuery: bool = False
+        self.__getQuery: bool = False
 
         if (secretKey):
             self.__secretKey = hashes.Hash(hashes.SHA256(), backend=default_backend())
@@ -48,6 +51,13 @@ class TreleadbClient:
 
 
 
+    def __ValidateWhereLists__(self, list1: list, list2: list, __res: bool = True) -> bool:
+        for _i in list1:
+            if _i not in list2:
+                __res = False
+        return __res
+
+
 
     def getCollections(self) -> list:
         return list(os.listdir(os.path.join(self.__dbPath, self.__dbName)))
@@ -72,12 +82,16 @@ class TreleadbClient:
         if (not os.path.exists(os.path.join(self.__dbPath, self.__dbName, f'{collName}.json'))):
             raise Exception (f"Collection '{collName}' Not Found In '{self.__dbName}' Database.")
         self.__collection = collName
+        self.data.clear()
         return self
     
 
 
 
     def get(self, **keys: bool) -> Self:
+        if (not self.__collection):
+            raise Exception (f"No Collesction Has Been Selected")
+        
         collection = self.__ReadCollection__(self.__collection)
 
         if (not len(keys)):
@@ -86,6 +100,8 @@ class TreleadbClient:
         if (not all(_ in list(collection['Schema'].keys()) for _ in list(keys.keys()))):
             raise Exception (f"Invalid Keys '{keys}' For Collection '{self.__collection}' In Database '{self.__dbName}'")
 
+        self.__getQuery = True
+        self.__updateQuery = False
         validKeys = [_ for _ in keys if keys[_]]
         for _ in collection['Data']:
             dataRow = dict((key, val) for key, val in _.items() if key in validKeys)
@@ -96,32 +112,62 @@ class TreleadbClient:
 
 
 
-    def where(self, **keys) -> Self:
+    def where(self, *keys: dict) -> Self:
+        if (not self.__collection):
+            raise Exception (f"No Collesction Has Been Selected")
+        
         collection = self.__ReadCollection__(self.__collection)
 
         if (not self.data):
             raise Exception (f"Invalid Operation In Collection '{self.__collection}' From Database '{self.__dbName}'")
-        if (not len(keys)):
-            return self.data
-        if (not all(_ in list(collection['Schema'].keys()) for _ in list(keys.keys()))):
-            raise Exception (f"Invalid Keys '{keys}' For Collection '{self.__collection}' In Database '{self.__dbName}'")
+        for _ in keys:
+            if (not all(_ in list(collection['Schema'].keys()) for _ in list(_.keys()))):
+                raise Exception (f"Invalid Keys '{keys}' For Collection '{self.__collection}' In Database '{self.__dbName}'")
         
-        dataKeys = list(self.data[0].keys())
-        self.data.clear()
-        for key_c, val_c in keys.items():
-            for _ in collection['Data']:
-                if (_[key_c] == val_c):
-                    _temp = {}
-                    for d in dataKeys:
-                        _temp[d] = _[d]
-                    self.data.append(_temp)
+
+        if (self.__getQuery):
+            dataKeys = list(self.data[0].keys())
+            self.data.clear()
+            for _ in keys:
+                for object in collection['Data']:
+                    if (self.__ValidateWhereLists__(list(_.values()), list(object.values()))):
+                        _temp = {}
+                        for d in dataKeys:
+                            _temp[d] = object[d]
+                        self.data.append(_temp)
+
+                    
+        # if (self.__updateQuery):
+        #     __list: list = []
+
+        #     for key_c, val_c in keys.items():
+        #         i = 0
+        #         for _ in collection['Data']:
+        #             if (_[key_c] == val_c):
+        #                 __list.append(i)
+        #             i += 1
+
+        #     for i in __list:
+        #         for _updateKey, _updateVal in self.data.items():
+        #             collection['Data'][i][_updateKey] = _updateVal
+
+        #     with open(os.path.join(self.__dbPath, self.__dbName, f'{self.__collection}.json'), 'w') as _f:
+        #         if (self.__secretKey == None):
+        #             _f.write(json.dumps(collection))
+        #         else:
+        #             data = Fernet(self.__secretKey).encrypt(bytes(json.dumps(collection, default=str).encode('utf-8')))
+        #             _f.write(str(data.decode('utf-8')))
+        #             _f.close()
 
         return self
-
+        
 
 
 
     def insert(self, keys: dict) -> Self:
+        if (not self.__collection):
+            raise Exception (f"No Collesction Has Been Selected")
+        
         collection = self.__ReadCollection__(self.__collection)
         
         dbSchema = list(collection['Schema'].keys())[:-3]
@@ -148,3 +194,60 @@ class TreleadbClient:
 
         self.__collection = None
         return keys
+
+
+
+
+    def update(self, keys: dict) -> Self:
+        if (not self.__collection):
+            raise Exception (f"No Collesction Has Been Selected")
+        
+        collection = self.__ReadCollection__(self.__collection)
+
+        if (not len(keys)):
+            self.data = collection['Data']
+            return self
+        if (not all(_ in list(collection['Schema'].keys()) for _ in list(keys.keys()))):
+            raise Exception (f"Invalid Keys '{keys}' For Collection '{self.__collection}' In Database '{self.__dbName}'")
+        
+        updateKeys = list(keys.keys())
+        if ('__id' in updateKeys or 'created_at' in updateKeys or 'updated_at' in updateKeys):
+            raise Exception (f"Keys: ['__id', 'created_at', 'updated_at'] Are Only Read Mode For Client")
+        
+        self.data = keys
+        self.__updateQuery = True
+        self.__getQuery = False
+
+        return self
+    
+
+
+
+    def delete(self, keys: dict, Full: bool = False) -> Self:
+        if (not self.__collection):
+            raise Exception (f"No Collesction Has Been Selected")
+        if (not len(keys)):
+            self.data = []
+            return self
+        
+        collection = self.__ReadCollection__(self.__collection)
+
+        if (not all(_ in list(collection['Schema'].keys()) for _ in list(keys.keys()))):
+            raise Exception (f"Invalid Keys '{keys}' For Collection '{self.__collection}' In Database '{self.__dbName}'")
+        if (not Full):
+            for _ in collection['Data']:
+                for key_c, val_c in _.items():
+                    for key_del, val_del in keys.items():
+                        if (key_c == key_del and val_c == val_del):
+                            self.data.append(_)
+                            collection['Data'].remove(_)      
+
+        with open(os.path.join(self.__dbPath, self.__dbName, f'{self.__collection}.json'), 'w') as _f:
+            if (self.__secretKey == None):
+                _f.write(json.dumps(collection))
+            else:
+                data = Fernet(self.__secretKey).encrypt(bytes(json.dumps(collection, default=str).encode('utf-8')))
+                _f.write(str(data.decode('utf-8')))
+            _f.close()
+        
+        return self

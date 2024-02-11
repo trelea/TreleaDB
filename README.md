@@ -401,6 +401,9 @@ db.select('Users').insert({
     'user_isVerified': False
 })
 
+# Because of method chaining prinicple you can also write like this:
+# db.select('Users').insert({ ... }).insert({ ... }).insert({ ... })... 
+
 # Output
 users_data = db.getCollection('Users', Schema=True)
 print(json.dumps(users_data, indent=4))
@@ -464,3 +467,21 @@ cat ~/treleadb/RedditClone/Users.json
 gAAAAABlxn-Bg_IjtJ62NlhnJOJNjgSg4QZtS8_dPkMgAwMJEIGzR01WSlIb6J39PSAySfWpbKHk9Ys_mg381gGufoxSWxBqbd-rFloxcKpJAfm5wLb561CXAptY2iAOAqX3fqtWtuiO13RNnsoeA9teref4P7MB2zHbd6tXz1imAInMhpmKjH-MhPV-GCKvNyruNNn8-pno_7so3Pei3SG3fiwc-XsNdj0nis8LbYbVn4M9b-6ng1gy0seYPilcW-X5bDKEcbqrtubVrgY8c3L94TrW1rG1Z0Nj38mvFDndwk4AUrNlr-KAPYHroo8C6-PbJLTJ6VOeQLGksNXSY5SaJpL6x-n7TnDavz5j-WhlFAWp9P9ZPQKkCi9C55JG6QABIebom7KNUkVfUCkJgcRrxiRRqaKQr5RzTp4IP7xK0qi55PZ_XjQVVYPOqgzh-HcxF7PBPY8MIOoP6HtEzsakNZjZvXcNrjfs9VUCeuKzk31ZuXUvb6yCUmfAYXQBA7wc0A9MhTkQTtHwYSDEREu-xrdkYdSGWjzEE1bE28cRgJkN_bqOc5HYEBzOoV0XHxVF09P6iCyZfo4Ds6m9g-pJmhbTbx1-Z5eHQntBF0ZTlxtHpNlGFyn3TO4XIKufAeYEtA2JTxLVV4QvCVKgdH03-0u2_1tFDknQsRuBro0cVTdqFxAamVnSJAx-BUSvHBOiRztu2iZclv-TP0L3lNew9M1NVMfn2563vTC59YGxNELp1rmImCPqHAbNru_ww9hcpD0VR1ECxTGq_cBStJYUfC2wJAO3BgQ1-Mm7mgc5WGaoXVr6ZVvsl43CT2QxYyOn8SPM
 ...
 ```
+
+## TreleadbClient CRUD Methods
+
+### TreleadbClient Class has the most used methods for CRUD operations on collections. Principle of using methods is very simple, methods are based on method chainin, and also can have some vulnerabilities so you must use this methods like in my documentation :)
+
+### Getters Methods:
+- __select(__ self, collName: str __)__
+- __get(__ self, **keys: boll __)__
+- __getCollection(__ self, collName: str, Schema: bool = False __)__
+- __getCollections(__ self __)__
+- __where(__ self, *keys: dict __)__
+
+### Modifiers Methods:
+- __insert(__ self, keys: dict __)__
+- __update(__ self, keys: dict __)__
+- __delete(__ self, keys: dict, Full: bool = False __)__
+
+### In future will be implemented more methods, this project is in stage of developing. 
