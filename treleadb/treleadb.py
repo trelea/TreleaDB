@@ -137,6 +137,7 @@ class Database:
             raise Exception (f"Invalid Encrypted secretKey '{str(self.__secretKey.decode('utf-8'))}' For Database '{self.__dbName}'")
         
 
+
     def dropCollection(self, collName: str) -> int:
         if (not os.path.exists(os.path.join(self.__dbPath, self.__dbName, f'{collName}.json'))):
             raise Exception (f"Invalid Collection '{collName}' In Database '{self.__dbName}'")

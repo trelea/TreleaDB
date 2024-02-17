@@ -421,3 +421,23 @@ $: tree <_DatabasePath Value>
 
 0 directories, 0 files
 ``` 
+
+
+# TreleadbClient Class
+
+### TreleadbClient class provides methods for connecting to a database and execute CRUD operations concerning more on collections.
+
+__Constructor Parameters:__
+- __dbName__ Database Name
+- __dbPath__ Optional Datbase Path
+- __secretKey__ Optional paraphrase for hashing and encryption
+
+__classMethods__:
+- __getCollections(__ self __)__
+- __getCollection(__ self, collName: str, Schema: bool = False __)__
+- __select(__ self, collName: str __)__
+- __insert(__ self, keys: dict __)__
+- __get(__ self, **keys: bool __)__
+- __update(__ self, keys: dict __)__
+- __delete(__ self, keys: dict, Full: bool = False __)__
+- __where(__ self, *keys: dict __)__
