@@ -4,6 +4,7 @@ import time
 import json
 from typing import Self
 import uuid
+import shutil
 
 import base64
 from cryptography.fernet import Fernet
@@ -33,12 +34,25 @@ class Database:
             self.__dbPath = os.path.join(os.path.expanduser('~'), 'AppData', 'Local', 'treleadb')
         if (not os.path.exists(self.__dbPath)):
             os.mkdir(self.__dbPath)
-          
+
+
+
+    def __Verify__SecretKey__On__Collection__Drop__(self, collName: str) -> bool:
+        if (self.__secretKey == None):
+            self.__secretKey = ""
+
+        with open(os.path.join(self.__dbPath, self.__dbName, f'{collName}.json'), 'r') as _f:
+            try:
+                Fernet(self.__secretKey).decrypt(_f.read().encode('utf-8'))
+                _f.close()
+                return True
+            except:
+                return False
+
+
 
 
     def setupCollection(self, collName: str) -> Self:
-        # if (os.path.exists(os.path.join(self.__dbPath, self.__dbName, f'{collName}.json'))):
-        #     raise Warning (f"Collection '{collName}' Already Exists In '{self.__dbName}' DataBase.")
         self.__collection = collName
         return self
     
@@ -112,14 +126,23 @@ class Database:
 
 
 
-    def dropDatabase(self) -> None:
+    def dropDatabase(self) -> int:
         if (not os.path.exists(os.path.join(self.__dbPath, self.__dbName))):
             raise Exception (f"Invalid Database '{self.__dbName}'")
-        return os.rmdir(os.path.join(self.__dbPath, self.__dbName))
-
+        
+        if (self.__Verify__SecretKey__On__Collection__Drop__(os.listdir(os.path.join(self.__dbPath, self.__dbName))[0].replace('.json', ''))):
+            shutil.rmtree(os.path.join(self.__dbPath, self.__dbName), ignore_errors=True)
+            return 1
+        else:
+            raise Exception (f"Invalid Encrypted secretKey '{str(self.__secretKey.decode('utf-8'))}' For Database '{self.__dbName}'")
         
 
-    def dropCollection(self, collName: str) -> None:
+    def dropCollection(self, collName: str) -> int:
         if (not os.path.exists(os.path.join(self.__dbPath, self.__dbName, f'{collName}.json'))):
             raise Exception (f"Invalid Collection '{collName}' In Database '{self.__dbName}'")
-        return os.remove(os.path.join(self.__dbPath, self.__dbName, f'{collName}.json'))
+        
+        if (self.__Verify__SecretKey__On__Collection__Drop__(collName)):
+            os.remove(os.path.join(self.__dbPath, self.__dbName, f'{collName}.json'))
+            return 1
+        else:
+            raise Exception (f"Invalid Encrypted secretKey '{str(self.__secretKey.decode('utf-8'))}' For Database '{self.__dbName}'")

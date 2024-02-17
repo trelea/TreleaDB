@@ -2,7 +2,7 @@
 
 TreleaDB is a database, its provides object-oriented database for Python that provides a high-degree of transparency.
 
-Its a very simple Database build for developing mini projects. It provides encryption and hashing and other specifications.
+Its a very simple Database build for developing mini projects. It provides encryption, hashing and other specifications.
 
 ## Downloads
 
@@ -14,62 +14,55 @@ You can install the TreleaDB using pip command:
 pip install treleadb
 ```
 
-## Examples
+# Database Class
 
-### __Database__ class provides methods to create and connect to a databases and create and migrate schemas and collections.
+### __Database__ class provides methods for creating, connecting to a database and bonus schema rule validation and migration
 
 __Constructor Parameters:__
 - __dbName__ Database Name
 - __dbPath__ Optional Datbase Path
 - __secretKey__ Optional paraphrase for hashing and encryption
 
+__classMethods__:
+- __setupCollection(__ self, collName: str __)__
+- __modelSchema(__ self, Schema: dict __)__
+- __migrate(__ self, data: list = None __)__
+- __dropDatabase(__ self __)__
+- __dropCollection(__ self, collName: str __)__
 
-Here is a basic example of creating a database with collection then setting up schema and migrate data.
-First Step is to create a __migration.py__ file
+### Creating a mini database with one collection.
 ```python
 # migartion.py
-
-# Import class Database for setup Db
 from treleadb import Database
-
-myDb = Database(dbName="NewApp")
-
-# Defining Schema
-userSchema = {
-    'name': str,
-    'email': str,
-    'age': int
-    # ... More details about user ...
-}
-
-# Migration Method Chaining Please !!!
-users = myDb.setupCollection('Users').modelSchema(userSchema).migrate()
-```
-
-
-How to preview migration response from __classMethod__ __.migrate()__
-```python
 import json
 
-# .data is atributte from the instance of class 
-print(json.dumps(users.data, indent=4))
+# initialize object
+mydb = Database(dbName="MyFirstDb")
+
+# specify schema collection then setup full collection
+todoSchema = { 'title': str, 'description': str }
+todos = mydb.setupCollection("Todos").modelSchema(todoSchema).migrate()
+
+# preview output
+# all json info is in .data attribute
+print(json.dumps(todos.data, indent=4))
 ```
-
-
-## Example of Migration Output Response
+```bash
+# Run this command
+python3 ./migration.py
+```
 ```json
 {
-    "_Database": "NewApp",
-    "_DatabasePath": "/home/treleadev/treleadb/NewApp",
-    "_Collection": "Users",
-    "_CollectionPath": "/home/treleadev/treleadb/NewApp/Users.json",
+    "_Database": "MyFirstDb",
+    "_DatabasePath": "/some_path/treleadb/MyFirstDb",
+    "_Collection": "Todos",
+    "_CollectionPath": "/some_path/treleadb/MyFirstDb/Todos.json",
     "_Encryption": false,
-    "_Migration_created_at": "Thu Feb  8 23:00:07 2024",
-    "_Migration_updated_at": "Thu Feb  8 23:00:07 2024",
+    "_Migration_created_at": "Sat Feb 17 19:05:29 2024",
+    "_Migration_updated_at": "Sat Feb 17 19:05:29 2024",
     "Schema": {
-        "name": "str",
-        "email": "str",
-        "age": "int",
+        "title": "str",
+        "description": "str",
         "created_at": "str",
         "updated_at": "str",
         "__id": "str"
@@ -78,350 +71,116 @@ print(json.dumps(users.data, indent=4))
 }
 ```
 
-## migrate() method
-
-### migrate() method is the core of creating and setting data in database collections. This method can take optional list as a parameter to set data automatically on migration. 
-
-### The migrate() method will reset and upgrade the entire collection if some changes were applied to schema. 
-
-Here is an example using .migrate() to insert automatically data.
+### Lets develop more complex database (like a mini reddit clone) with encryption layer and data seeds on it.
 
 ```python
 # migartion.py
-
-# Import class Database for setup Db
 from treleadb import Database
+import datetime
+from faker import Faker     # pip install Faker for seeding fake data
 import json
 
-myDb = Database(dbName="NewApp")
 
-# Defining Schema
-userSchema = {
-    'name': str,
-    'email': str,
-    'age': int
-    # ... More details about user ...
-}
+# Optional Parameter For Encryption: secretKey: str = None
+mydb = Database(dbName="RedditClone", secretKey="password_for_db")
+fake = Faker()
 
-# Migration Method Chaining Please !!!
-users = myDb.setupCollection('Users').modelSchema(userSchema).migrate([
-    {
-        'name': 'John',
-        'email': 'john_peter@mail.net',
-        'age': 34
-    },
-    {
-        'name': 'Ann',
-        'email': 'annmyce12@nmail.net',
-        'age': 19
-    },
-    {
-        'name': 'Nick',
-        'email': 'holdernick222@gmail.com',
-        'age': 21
-    }
-    # More Data ...
-])
 
-print(json.dumps(users.data, indent=4))
-```
+# Generate 3 collections: Users, Posts, Comments
 
-The Expected Result Of Migration.
-```json
-{
-    "_Database": "NewApp",
-    "_DatabasePath": "/home/treleadev/treleadb/NewApp",
-    "_Collection": "Users",
-    "_CollectionPath": "/home/treleadev/treleadb/NewApp/Users.json",
-    "_Encryption": false,
-    "_Migration_created_at": "Thu Feb  8 23:19:24 2024",
-    "_Migration_updated_at": "Thu Feb  8 23:19:24 2024",
-    "Schema": {
-        "name": "str",
-        "email": "str",
-        "age": "int",
-        "created_at": "str",
-        "updated_at": "str",
-        "__id": "str"
-    },
-    "Data": [
-        {
-            "name": "John",
-            "email": "john_peter@mail.net",
-            "age": 34,
-            "created_at": "Thu Feb  8 23:19:24 2024",
-            "updated_at": "Thu Feb  8 23:19:24 2024",
-            "__id": "838c142b-ea7b-411c-9dd4-190b3bd992b0"
-        },
-        {
-            "name": "Ann",
-            "email": "annmyce12@nmail.net",
-            "age": 19,
-            "created_at": "Thu Feb  8 23:19:24 2024",
-            "updated_at": "Thu Feb  8 23:19:24 2024",
-            "__id": "8a4a6a88-d0f9-4e6c-9309-dc38a89c20c3"
-        },
-        { "more": "..." }
-    ]
-}
-```
-## What is secretKey parameter ?
+# ----------------------
+# Setup Users Collection
 
-### __secretKey__ parameter from constructor is a parameter that has the role of encrypting the collections. Is like a password for accesing database collections.
-
-Here Is An Example Uisng secretKey.
-
-```python
-from treleadb import Database
-import json
-
-myDb = Database(dbName="NewApp", secretKey="mySecretKey_poiuytrewq1234")
-
-# Defining Schema
-userSchema = {
-    'name': str,
-    'email': str,
-    'age': int
-    # ... More details about user ...
-}
-
-# Migration Method Chaining Please !!!
-users = myDb.setupCollection('Users').modelSchema(userSchema).migrate([
-    {
-        'name': 'John',
-        'email': 'john_peter@mail.net',
-        'age': 34
-    },
-    {
-        'name': 'Ann',
-        'email': 'annmyce12@nmail.net',
-        'age': 19
-    },
-    {
-        'name': 'Nick',
-        'email': 'holdernick222@gmail.com',
-        'age': 21
-    }
-    # More Data ...
-])
-
-print(json.dumps(users.data, indent=4))
-```
-
-Expected Output Result From A Migration With Encryption Key.
-
-```json
-{
-    "_Database": "NewApp",
-    "_DatabasePath": "/home/treleadev/treleadb/NewApp",
-    "_Collection": "Users",
-    "_CollectionPath": "/home/treleadev/treleadb/NewApp/Users.json",
-    "_Encryption": true,
-    "_Migration_created_at": "Thu Feb  8 23:24:05 2024",
-    "_Migration_updated_at": "Thu Feb  8 23:24:05 2024",
-    "Schema": {
-        "name": "str",
-        "email": "str",
-        "age": "int",
-        "created_at": "str",
-        "updated_at": "str",
-        "__id": "str"
-    },
-    "Data": [
-        {
-            "name": "John",
-            "email": "john_peter@mail.net",
-            "age": 34,
-            "created_at": "Thu Feb  8 23:24:05 2024",
-            "updated_at": "Thu Feb  8 23:24:05 2024",
-            "__id": "09051f6b-d0e4-48f9-80cb-ded42968d2c9"
-        },
-        { "more": "..." }
-    ]
-}
-```
-
-Lets look at the content of file after using a secretKey
-
-```text
-//  ./NewApp/Users.json
-
-gAAAAABlxUhZD48c31B4dn50QmsqRO6RVCA7F-yKChgwxEr_EFLAZ-umXU1UZdekJtDjBMhsz
-TyRYvR56uCDeE2Npn5t0wzomu347CjsS4E7yKDCgqebYKKibSNoGjZ3o7_LarhX7n3aB83JOt
--rcnMCg_V9arW-N6yRfSa8uCKv7EHys0KDSBX7gnsz7jDZbv0F0cC-z0rD3Vu4sY3fmigNT1l
-jl4TVYsc5PO0NrzxTTpVPhKAvdWTQXfh-QI5zqRLsFHdxgxP2rCnY0IGxSeylHG4TX0VxmjHZ
-ujqoYJC-Fqzm9wO3sv2mL5PnmYoC16IVSHra0q3l3OfJ8QW--jLiHiuhhvH5727NovQQL3tog
-B5W6DTN22Yebt0RaTlcVYi0gTmr21LpxPp8akVSVtMQb3yw_p-i_M6l-aB2nzd1G1_zS7cczq
-mrmk4u0V9yg7u3zJIVsfnoYaNgHYWgRE8a746umVp5fVy4cGwbXjgmBfpdl0fvxSGYe8isPty
-BnQX91krEukwGpwLDtbncSVW5qOMe8dtiHQZ8ph_6TzGFdC9K0Fq06KL0NGVqSYKl2AlF3LNq
-ZQFT5BXkpticcS_YmA870n1dHBxbR7VcTaogrPGNLRNBwl2sjDYg1JNP78xjYw3xSuyVur-Cy
-7QbpIZVhSAJ8hEHycIH-vNWsSWXzQIfmeK1g6XZyHHWxtI2eN_VozTqgeXMadqFoQnDdv46X_
-Y-eGNQ3IYb4RFOM7L2BJ1srQMA62awLIRsBWw1q0yCmR5m5wKRKsEM0fbH_NbS3vYZ3ekhG_o
-mWl3qw5uOLxFvJ6ERxq5rjY4koQu0zlru7-YDSG-YeRQ8q4zTYC9Ia-tduUSs13PLeuOZ9fSQ
-XK-bSEk3HGVI2bO6vSSYp7qOVtEcvcPImBrgeHM015REN-NfS7eBnF0nY4JqB3tn1DWrWrWNJ
-7V-fn_XaoMd2zALRaz7mWUewB0Al6ktfFOWBu3nBvjTw828XkfpgayDxWXDM0IyOH1fvqYA_F
-o4Q6pZQFm8h4jvV-5m44WRbNU1GbO-LmIepolfeu_j3hZxsRUbpl4JEWUoUoTgwADVeoonM1e
-FVCO466T_bcpxspMbGTvsr35nUDeAnXpQurkgmq4jNkOk_sV8t9WqdDG6QvhXYIMfwrhK1kVu
-...
-```
-
-## TreleaDB Client
-### TreleadbClient is a class that provides the general queries for database manipulation. Must use TreleadbClient only for CRUD operations.
-
-### If you want to create, migarte, or drop somthing then you must use Database class.
-
-Here is a full example for using TreleadbClient with Database.
-
-```python
-# migration.py file
-from treleadb import Database
-from datetime import date
-
-myDb = Database(dbName="RedditClone", secretKey="qwerty")
-
-# Users Collection
-myDb.setupCollection('Users').modelSchema({
+userSchema: dict = { 
     'user_name': str,
     'user_email': str,
-    'user_dateOfBirth': date,
+    'user_dateOfBirth': datetime.date,
     'user_password': str,
     'user_thumbnail': str,
     'user_isVerified': bool
-}).migrate()
+}
 
-# Posts Collection
-myDb.setupCollection('Posts').modelSchema({
+userSeeds: list = list()
+for _ in range(20):
+    user: dict = dict()
+    user['user_name'] = str(fake.first_name())
+    user['user_email'] = str(fake.email())
+    user['user_dateOfBirth'] = datetime.date(int(fake.year()), int(fake.month()), int(fake.random.randint(1, 30)))
+    user['user_password'] = str(''.join(fake.words(nb = 2)))
+    user['user_thumbnail'] = str(fake.uri())
+    user['user_isVerified'] = bool(fake.boolean())
+    userSeeds.append(user)
+
+users = mydb.setupCollection('Users').modelSchema(userSchema).migrate(userSeeds)
+
+# preview Users output
+print(json.dumps(users.data, indent=4))
+
+
+# ----------------------
+# Setup Posts Collection
+
+postSchema: dict = {
     'user_name': str,
     'post_title': str,
     'post_description': str,
     'post_thumbnail': str,
     'post_likes': list,
     'post_comments': int
-}).migrate()
+}
 
-# Comments Collection
-myDb.setupCollection('Comments').modelSchema({
+postSeeds: list = list()
+for _ in range(30):
+    post: dict = dict()
+    post['user_name'] = str(fake.first_name())
+    post['post_title'] = str(" ".join(fake.words(nb = 2)))
+    post['post_description'] = str(fake.text(max_nb_chars=1000))
+    post['post_thumbnail'] = str(fake.uri())
+    post['post_likes'] = list(fake.first_name() for _ in range(100))
+    post['post_comments'] = int(fake.random.randint(1, 50))
+    postSeeds.append(post)
+
+posts = mydb.setupCollection('Posts').modelSchema(postSchema).migrate(postSeeds)
+
+# preview Posts output
+print(json.dumps(posts.data, indent=4))
+
+
+# -------------------------
+# Setup Comments Collection
+
+commentSchema = {
     'post_id': str,
     'user_name': str,
     'comment_text': str
-}).migrate()
+}
+
+commentSeeds: list = list()
+for _ in range(40):
+    comment: dict = dict()
+    comment['post_id'] = str(fake.uuid4())
+    comment['user_name'] = str(fake.first_name())
+    comment['comment_text'] = str(fake.text(max_nb_chars=100))
+    commentSeeds.append(comment)
+
+comments = mydb.setupCollection('Comments').modelSchema(commentSchema).migrate(commentSeeds)
+
+# preview Comments output
+print(json.dumps(comments.data, indent=4))
 ```
-Run this command in terminal.
 ```bash
+# Run this command
 python3 ./migration.py
 ```
-
-Lets see if collections were created using TreleadbClient class.
-
-```python
-# client.py
-from treleadb import TreleadbClient
-import json
-
-# Very Important !!! If you used a secretKey on migration you also need to use it on client side.
-db = TreleadbClient(dbName="RedditClone", secretKey="qwerty")
-
-# classMethod -> getCollections() -> get all collections from specific database.
-collections = db.getCollections()
-print("Collections: ", collections)
-
-# classMethod -> getCollection(collName: str, Schema: bool = False) -> get a collection...
-
-# If second parameter 'Schema' is True then getCollection() will return the data plus collection Schema.
-
-users_collection = db.getCollection('Users')
-print("Users Collection: ", json.dumps(users_collection, indent=4))
-
-users_collection = db.getCollection('Users', Schema=True)
-print("Users Collection Schema True: ",json.dumps(users_collection, indent=4))
-```
-Run this command in terminal.
-```bash
-python3 ./client.py
-```
-Lets Preview output.
-```text
-Collections:  ['Posts.json', 'Users.json', 'Comments.json']
-
-Users Collection:  []
-
-Users Collection Schema True:  {
-    "_Database": "RedditClone",
-    "_DatabasePath": "/home/treleadev/treleadb/RedditClone",
-    "_Collection": "Users",
-    "_CollectionPath": "/home/treleadev/treleadb/RedditClone/Users.json",
-    "_Encryption": true,
-    "_Migration_created_at": "Fri Feb  9 21:04:16 2024",
-    "_Migration_updated_at": "Fri Feb  9 21:04:16 2024",
-    "Schema": {
-        "user_name": "str",
-        "user_email": "str",
-        "user_dateOfBirth": "datetime",
-        "user_password": "str",
-        "user_thumbnail": "str",
-        "user_isVerified": "bool",
-        "created_at": "str",
-        "updated_at": "str",
-        "__id": "str"
-    },
-    "Data": []
-}
-```
-
-## Insert Data Using TreleadbClient
-
-### You can insert data into a specific collection using TreleadbClient queries.
-
-Here is an example of inserting data in collection Users.
-
-```python
-# client.py
-from treleadb import TreleadbClient
-import datetime
-import json
-
-db = TreleadbClient(dbName="RedditClone", secretKey="qwerty")
-
-# Very Important !!! Respect the Schema Rule
-# Lets insert two user objects in Users collection
-db.select('Users').insert({
-    'user_name': 'miguel',
-    'user_email': 'miguel_ann@dotnet.net',
-    'user_dateOfBirth': datetime.date(2000, 12, 10),
-    'user_password': 'koniciua_1234',
-    'user_thumbnail': 'url_path_thumb.jpg',
-    'user_isVerified': True
-})
-db.select('Users').insert({
-    'user_name': 'angela',
-    'user_email': 'angela_simone12@gmail.roro',
-    'user_dateOfBirth': datetime.date(2005, 3, 20),
-    'user_password': 'angelaKeyword',
-    'user_thumbnail': 'url_path_thumb.jpg',
-    'user_isVerified': False
-})
-
-# Because of method chaining prinicple you can also write like this:
-# db.select('Users').insert({ ... }).insert({ ... }).insert({ ... })... 
-
-# Output
-users_data = db.getCollection('Users', Schema=True)
-print(json.dumps(users_data, indent=4))
-```
-Run this command in terminal.
-```bash
-python3 ./client.py
-```
-Lets see the result in terminal.
 ```json
 {
     "_Database": "RedditClone",
-    "_DatabasePath": "/home/treleadev/treleadb/RedditClone",
+    "_DatabasePath": "/some_path/treleadb/RedditClone",
     "_Collection": "Users",
-    "_CollectionPath": "/home/treleadev/treleadb/RedditClone/Users.json",
+    "_CollectionPath": "/some_path/treleadb/RedditClone/Users.json",
     "_Encryption": true,
-    "_Migration_created_at": "Fri Feb  9 21:39:44 2024",
-    "_Migration_updated_at": "Fri Feb  9 21:39:44 2024",
+    "_Migration_created_at": "Sat Feb 17 19:39:51 2024",
+    "_Migration_updated_at": "Sat Feb 17 19:39:51 2024",
     "Schema": {
         "user_name": "str",
         "user_email": "str",
@@ -435,53 +194,230 @@ Lets see the result in terminal.
     },
     "Data": [
         {
-            "user_name": "miguel",
-            "user_email": "miguel_ann@dotnet.net",
-            "user_dateOfBirth": "2000-12-10",
-            "user_password": "koniciua_1234",
-            "user_thumbnail": "url_path_thumb.jpg",
+            "user_name": "Hannah",
+            "user_email": "richardhill@example.org",
+            "user_dateOfBirth": "2012-05-05",
+            "user_password": "Americanstrategy",
+            "user_thumbnail": "http://www.wallace-martin.org/tagfaq.php",
             "user_isVerified": true,
-            "created_at": "Fri Feb  9 21:39:45 2024",
-            "updated_at": "Fri Feb  9 21:39:45 2024",
-            "__id": "f3139a92-e65f-4a3f-8075-24830dd66afa"
+            "created_at": "Sat Feb 17 19:39:51 2024",
+            "updated_at": "Sat Feb 17 19:39:51 2024",
+            "__id": "14ae9626-02b6-4da5-8a60-1623162ee855"
         },
         {
-            "user_name": "angela",
-            "user_email": "angela_simone12@gmail.roro",
-            "user_dateOfBirth": "2005-03-20",
-            "user_password": "angelaKeyword",
-            "user_thumbnail": "url_path_thumb.jpg",
+            "user_name": "Jack",
+            "user_email": "jonespatricia@example.org",
+            "user_dateOfBirth": "2005-09-05",
+            "user_password": "girlshake",
+            "user_thumbnail": "http://wade.org/tagmain.html",
             "user_isVerified": false,
-            "created_at": "Fri Feb  9 21:39:45 2024",
-            "updated_at": "Fri Feb  9 21:39:45 2024",
-            "__id": "a2eff607-76e9-4cc5-80b2-53fbe0a42178"
+            "created_at": "Sat Feb 17 19:39:51 2024",
+            "updated_at": "Sat Feb 17 19:39:51 2024",
+            "__id": "9d5ed87d-2bc7-4975-bd3a-ab64884df6bd"
+        },
+        ...
+    ]
+}
+{
+    "_Database": "RedditClone",
+    "_DatabasePath": "/some_path/treleadb/RedditClone",
+    "_Collection": "Posts",
+    "_CollectionPath": "/some_path/treleadb/RedditClone/Posts.json",
+    "_Encryption": true,
+    "_Migration_created_at": "Sat Feb 17 19:39:51 2024",
+    "_Migration_updated_at": "Sat Feb 17 19:39:51 2024",
+    "Schema": {
+        "user_name": "str",
+        "post_title": "str",
+        "post_description": "str",
+        "post_thumbnail": "str",
+        "post_likes": "list",
+        "post_comments": "int",
+        "created_at": "str",
+        "updated_at": "str",
+        "__id": "str"
+    },
+    "Data": [
+        {
+            "user_name": "Thomas",
+            "post_title": "final available",
+            "post_description": "Six sing free natural hit itself despite big.\nHope talk through tree forward admit none modern. Both Republican participant particularly.\nCourse class business condition. Art forget media firm role. Agent popular head word.\nEverything at gas better raise. Opportunity speak place moment else sure national.\nBed produce author benefit gas nearly begin animal. Itself east knowledge.\nFeeling sing Mr big...",
+            "post_thumbnail": "http://miller-wagner.com/categories/categoryprivacy.jsp",
+            "post_likes": ["Karen", "Adam", "Laura", "Christopher", "Amber", ... ],
+            "post_comments": 24,
+            "created_at": "Sat Feb 17 19:39:51 2024",
+            "updated_at": "Sat Feb 17 19:39:51 2024",
+            "__id": "0614937c-7446-40e2-9f3b-6083d84e2f01"
+        },
+        {
+            "user_name": "Erin",
+            "post_title": "impact certainly",
+            "post_description": "Realize notice central drug everything whether newspaper. Day democratic message material amount music politics.\nDevelopment subject mind treatment local market. Own general win act network worker student.\nRecognize movie that interesting. Staff page modern director expect support music.\nAgency field remember modern able call next. Past television real area forget call necessary...",
+            "post_thumbnail": "https://levy-nelson.com/tag/main/blogregister.jsp",
+            "post_likes": [ "Timothy", "Christopher", "Reginald", "Isaiah", "Allen", ... ],
+            "post_comments": 2,
+            "created_at": "Sat Feb 17 19:39:51 2024",
+            "updated_at": "Sat Feb 17 19:39:51 2024",
+            "__id": "b65e288b-7268-40b4-8449-0245ac9aab8d"
         }
+        ...
+    ]
+}
+{
+    "_Database": "RedditClone",
+    "_DatabasePath": "/some_path/treleadb/RedditClone",
+    "_Collection": "Comments",
+    "_CollectionPath": "/some_path/treleadb/RedditClone/Comments.json",
+    "_Encryption": true,
+    "_Migration_created_at": "Sat Feb 17 19:39:51 2024",
+    "_Migration_updated_at": "Sat Feb 17 19:39:51 2024",
+    "Schema": {
+        "post_id": "str",
+        "user_name": "str",
+        "comment_text": "str",
+        "created_at": "str",
+        "updated_at": "str",
+        "__id": "str"
+    },
+    "Data": [
+        {
+            "post_id": "014911d0-11f1-4beb-af3c-8e8b5c5d1265",
+            "user_name": "Matthew",
+            "comment_text": "Phone technology hope concern hit he special doctor. Institution international social glass such.",
+            "created_at": "Sat Feb 17 19:39:51 2024",
+            "updated_at": "Sat Feb 17 19:39:51 2024",
+            "__id": "7e5afdbd-292a-418e-a388-336c2f551a5c"
+        },
+        {
+            "post_id": "d0752977-49a4-4ece-9ef0-13a98da42150",
+            "user_name": "Monica",
+            "comment_text": "Method send process commercial arrive. Exist add south.",
+            "created_at": "Sat Feb 17 19:39:51 2024",
+            "updated_at": "Sat Feb 17 19:39:51 2024",
+            "__id": "1c5d0851-a306-43ea-a4aa-7caf513f5007"
+        },
+        ...
     ]
 }
 ```
 
-Lets check the content of Users collection.
-```bash
-cat ~/treleadb/RedditClone/Users.json
+### Analyzing Database Structure
 
-gAAAAABlxn-Bg_IjtJ62NlhnJOJNjgSg4QZtS8_dPkMgAwMJEIGzR01WSlIb6J39PSAySfWpbKHk9Ys_mg381gGufoxSWxBqbd-rFloxcKpJAfm5wLb561CXAptY2iAOAqX3fqtWtuiO13RNnsoeA9teref4P7MB2zHbd6tXz1imAInMhpmKjH-MhPV-GCKvNyruNNn8-pno_7so3Pei3SG3fiwc-XsNdj0nis8LbYbVn4M9b-6ng1gy0seYPilcW-X5bDKEcbqrtubVrgY8c3L94TrW1rG1Z0Nj38mvFDndwk4AUrNlr-KAPYHroo8C6-PbJLTJ6VOeQLGksNXSY5SaJpL6x-n7TnDavz5j-WhlFAWp9P9ZPQKkCi9C55JG6QABIebom7KNUkVfUCkJgcRrxiRRqaKQr5RzTp4IP7xK0qi55PZ_XjQVVYPOqgzh-HcxF7PBPY8MIOoP6HtEzsakNZjZvXcNrjfs9VUCeuKzk31ZuXUvb6yCUmfAYXQBA7wc0A9MhTkQTtHwYSDEREu-xrdkYdSGWjzEE1bE28cRgJkN_bqOc5HYEBzOoV0XHxVF09P6iCyZfo4Ds6m9g-pJmhbTbx1-Z5eHQntBF0ZTlxtHpNlGFyn3TO4XIKufAeYEtA2JTxLVV4QvCVKgdH03-0u2_1tFDknQsRuBro0cVTdqFxAamVnSJAx-BUSvHBOiRztu2iZclv-TP0L3lNew9M1NVMfn2563vTC59YGxNELp1rmImCPqHAbNru_ww9hcpD0VR1ECxTGq_cBStJYUfC2wJAO3BgQ1-Mm7mgc5WGaoXVr6ZVvsl43CT2QxYyOn8SPM
-...
+```bash
+# Run this command
+
+$: tree <_DatabasePath Value>
+
+/some_path/treleadb/RedditClone
+├── Comments.json
+├── Posts.json
+└── Users.json
+
+1 directory, 3 files
 ```
 
-## TreleadbClient CRUD Methods
+### Preview content from a collection file
 
-### TreleadbClient Class has the most used methods for CRUD operations on collections. Principle of using methods is very simple, methods are based on method chainin, and also can have some vulnerabilities so you must use this methods like in my documentation :)
+```bash
+# Run this command
 
-### Getters Methods:
-- __select(__ self, collName: str __)__
-- __get(__ self, **keys: boll __)__
-- __getCollection(__ self, collName: str, Schema: bool = False __)__
-- __getCollections(__ self __)__
-- __where(__ self, *keys: dict __)__
+$: cd <_DatabasePath Value>
 
-### Modifiers Methods:
-- __insert(__ self, keys: dict __)__
-- __update(__ self, keys: dict __)__
-- __delete(__ self, keys: dict, Full: bool = False __)__
+$: cat Users.json
 
-### In future will be implemented more methods, this project is in stage of developing. 
+gAAAAABl0O9nepF6-e0nEKF_bkg9p_WUzxDLVhAsN_gFCjiifQMWJCQLZjs7K7xk-SMf_nzgIsnWnVx7Bl23_Ou_uG9ddjO7DBDJSl-nmZ-00DkLF99saAtI-zh2Yt_Q5mKClksdDQdi1umoZWkOlB54M8Lx_7pNak1hv1fCZw8iJu2k4DN0xgSlXKbhn1AAo6mh_cVYnfQga6sEf_I7lKpYZcAwQM3-cILajm97wKCindYVc36MkCCU1tqFXntED4w7eAT7lkrLFxgREZGFx30DOamLk4SqOupE3_TQ1YDSp69xzZPNfmq_9D7zBum4tkyDD6Qvb-n78FkIcZon5T-TX9wd9UmlGEohD_vT2tPELabcBPdul8rOt0KORi_52LAWedF1ORVAXtRCa_AWqE607pkra3b_2cv0xIA-QqixMvy071HVyH2xOAL-m5Oh4Rk0mrjx2WhT51vjlz1DGdb93wtRe5wwuWkICAtQmaAAkdP4NOTWzA1GaoyRU6Iepk-tx_Uaj8vrwdT5BlN79ipQpQqzJOx1prLBOpqtDIduOcJV6vQ8QL7sHEO0Ti8kDX0a-CScP2YhOyA4420JruJBAZYx5J_OAR6gOrH9eys0CN-16nHMUIn1GYehe2yHABScFPuoN6uyr2dp2r58LP5ouYv-XEFhb03dOS_E8_yZSphM834asW9jsf8PYRExE2yuY7HSd9F9CH-389jkhq-O3RLMRCM-136wpAjHuWeUpVBXgZ2imEVXJjbsAoUhjz6sD325PLuTwiDhDwdeng_SFK5Dqw5oUQ8-bIVuEMtjAjIOgpkJ-8uPpa74FLUWqd13DjXtwadsN3qsQJbqJFBq56xZ-nAebn3HnC0hrBF_ayIz8QToMAU4cDOJwfLxtTigS3lYOFmD5Zz2kQBieW1wItpFzLlvWoTflL5H5RphWz-KWwlR1S8NSXgN5oXSuVAFTK3y0y0oboCfZg615QjDhQDI0Q-U49TMEqqHyl7hHkw-Wdonx5eBKKoNNfiX_zuGeNdxw1iGqOjIuD9emDlRQj2W9LZC8b4oRFY3TKBIBJF5uMC9y8xIeXmznhWvjT9MTrAoIp7sYvHD_qA74DROF7T37UFU4-Cdt4KXpI8MKLhoAIRH0-S0H4LLhvglJJP2cApBQmTbYuIT8jdsxNWewNW3_lG7SL6KdlqcalTRrgJmgU_mkOi7hbde0HbnJbk6f-vuHfceFcGZLqmUlGNpBi6Tr9ySMpnW0X-Hu5qsu3C4Qn8lzoZSYQYzlw0RtDtlo-GBNJyS7uM91MUK45pFBCbWZ1TUi1ricNMTc4rGMgD8YXKH9G-ekwL0gcrgKJpTPaJoxI6wHNZTXbnWsHDUt1iPbCPmLN4tI_mv5I4iY6k3ZfoMr3zhWz4E5boo7NtPu1Qx-mSqyNseBQgbXln4SaqVuWe5NSdHyZ5glUzC5iFJebKa8Asi-7JzZDLb9hD_TCm2LI1ejWLnV94GNpBcmV01DMcZPnhwKCHFMlh128WbqLbn2HCbERYyG_uiSk8Kvbfkm7A4MmhjkZ1jHmKEGnCqA0NQ40J2U81TwbiOawjDq4PwpaPqwlDYVqMUztol4Lddk8crBnzKuzbsVXs5psi1a8f5uggTMSpPflUyo66mt4Oze1crO9Gh2FtcOLgh1ycQYhkkhQ1UWU5I-pjfHUdWGphJpRgXTJxMp7PS7oBWxo_s37oYSB6FZUBFOJa9-o6_c1ppJvpj0xG0qvtf4OmFE2qcgYs-deAcyCqxUTFGKYxTH2DCU_yrR_-wrNvZQDt-kidNu8SPFTc6gIZ29ogdt71cZUjaff14ViHdOnRWej4t2wuxqfK2hBxR7c9Pu4UmEMJk18KpBiqoC5fRs5Z5INC_ikRuJUt-RFvnV2zt2oLG-1KwSYuFFqHRa8LPdChnVcPIvuduySg7zmg5sV2l6tObhmCle-3y4MCMgChJFGYY5t8A0sfC79wOgtMJ0jWcw_DP0LhyU_A5Nebd9sohpm3LL7rdhU7j0nH9U6gE1V78zgmMNgMLPXgE2hIQ06WDvAAGgEAubOvZ-ZKzyxFpfnY-JR5lbCjFTeZtyxu0dHZ3mPvSVOrkZdytxov7fu5mi1X8FWd1rF_A8vMmslH1Ocn7szK0wk_tRqItyuEEAUOhzaNdVnhAMPxlmYoPeOW_dJiw_uDHjHFMexjHBqIdf3jSoOelB4iIHSphaT9W90Bn2qRHBT2YziGZPnQJW0F2yFkYYRfuOl7gffgkQaJ0eJsqcwnGor-XDv3xV77tW9KA6XeVFNgHPbJm5nUelvsJGCudOqCY_Z5Z4UE9Ekd22DcrpMhAQ5BgFIw9mxyHUkoRzskumqwrF1SrSjMhFA7hvPJTIf4CB_fXP19shRP30bHc4f72EKLolQYw7H-_DrlhxWpGzyEurDnzI3ClCTztrT7Ng7kZHVnelLODwYQyXCi_7v7BRNefIOzweuhTsiUTyAFE6fh6rBzdT-T1zizz0o23qtBjqbAgSHsstOxF2reMEbXt4pV6bwnXgB4hvCSVYcUobXeOSLp3Xoy5SsyQnYzjVU94pVrVJqiTIh2tCwMto0FB4ibEOqhURFA0exbR6aEMCzQDoB3v5PqnFuugptTT6k0ceq7_jXTvkn69tECH16pA7H5MAr_opgkfxW0pR2P8zBiyBAlLNiJWNnALBH0Cvdhc74sDWCnGaCKLNQWEnQDPiu-gCrL1w9y2mlw0QicsiTiFdnUdWc9WtrJxcCUdDfiS3-45QRDObXVU5foHfUAb_5a-xv2PP_UsUY7P-I1ciOJkF0iw9z8dRp9Hy1d0D_RUAdRGaSHTy74DydDWlmJK34OWad1b2-imOpzghujfqAbhXudaV50W1o4gBE4e5fJJVRS_ViPDYTAvfmCS9vUMyjCHNznWyW87T-TW1byn_h-jbUVFLqQfwv6m-V0Fw_6-UYo9DP4Dc7kMgzV0kzpugti79yAqLti6ZoeU0dQwlGD39r2_psFimmnl-wZF9KkZ8TcL3HJqsnfFXKQw1Sane303fdWQt9gJ_z-7wLlL058LANb1rqEGpdaizbih2BotWisOe9zC-c_TLe7VFzvTZMjVQuZWIApTaVEeBAjCttmyxEpmZwjGpC-6xmTD
+```
+
+### Drop Collections using .dropCollection() classMethod
+
+```python
+# drop.py
+from treleadb import Database
+
+# connect to an existent db
+mydb = Database(dbName="RedditClone", secretKey="password_for_db")
+
+# drop an existent collection
+try:
+    mydb.dropCollection("Comments")
+    print("Collection Successfully Deleted")
+except Exception as e:
+    print(e)
+```
+```bash
+# Lets run command drop.py
+
+python3 ./drop.py
+
+# Output Should Be:
+# Collection Successfully Deleted
+```
+```bash
+# Lets run another time command drop.py
+
+python3 ./drop.py
+
+# Output Should Be:
+# Invalid Collection 'Comments' In Database 'RedditClone'
+```
+
+### Drop with wrong secretKey
+
+```python
+# modify secretKey parameter and dropCollection parameter in drop.py
+
+# ...
+
+mydb = Database(dbName="RedditClone", secretKey="wrong_pass")
+
+# ...
+
+mydb.dropCollection("Posts")
+
+# ...
+```
+```bash
+# Lets run another time command drop.py
+
+python3 ./drop.py
+
+# Output Should Be:
+# Invalid Encrypted secretKey 'U7z0iZuP4pa4OdhUO3ZlB...' For Database 'RedditClone'
+```
+In conclusion the secretKey can be used like a security layer for your database and collections.
+Best practice is to save the content of secretKey into a __.env__ file.
+
+### Drop Database using .dropDatabase() classMethod
+
+```python
+# drop.py
+from treleadb import Database
+
+# connect to an existent db
+mydb = Database(dbName="RedditClone", secretKey="password_for_db")
+
+# drop an existent Database
+try:
+    mydb.dropDatabase()
+    print("Database Successfully Deleted")
+except Exception as e:
+    print(e)
+```
+```bash
+# Lets run command drop.py
+
+python3 ./drop.py
+
+# Output Should Be:
+# Database Successfully Deleted
+```
+### Lets see if _DatabasePath still exists
+```bash
+# Run this command
+
+$: tree <_DatabasePath Value>
+
+<_DatabasePath Value>  [error opening dir]
+
+0 directories, 0 files
+``` 
