@@ -441,3 +441,188 @@ __classMethods__:
 - __update(__ self, keys: dict __)__
 - __delete(__ self, keys: dict, Full: bool = False __)__
 - __where(__ self, *keys: dict __)__
+
+### Creating a databse with empty collections, to let TreleadbClient execute CRUD operations on it.
+
+```python
+# migration.py
+from treleadb import Database
+import json
+
+db = Database(dbName='TodoApp', secretKey='todos_key_db')
+
+# setup collections
+users = db.setupCollection('Users').modelSchema({
+    'user_name': str,
+    'user_password': str
+}).migrate()
+print(json.dumps(users.data, indent=4))
+
+todos = db.setupCollection('Todos').modelSchema({
+    'todo_title': str,
+    'todo_description': str,
+    'user_id': str
+}).migrate()
+print(json.dumps(todos.data, indent=4))
+```
+```bash
+# Run command
+python3 ./migration.py
+```
+### Now that we have set database and collection, we will use TreleadbClient for CRUD.
+
+Useful methods __getCollections()__ and __getCollection()__ for viewing collections from a database.
+```python
+# client.py
+from treleadb import TreleadbClient
+
+db = TreleadbClient(dbName='TodoApp', secretKey='todos_key_db')
+
+# get all collections from database
+collections = db.getCollections()
+print(collections)
+
+# get data from a specific collection in database
+print(db.getCollection(collections[0])) 
+
+# get data and infos from a specific collection in database
+print(db.getCollection(collections[0], Schema=True))
+```
+
+### Lets insert some users in Users collection.
+
+```python
+# client.py
+from treleadb import TreleadbClient
+import json
+
+db = TreleadbClient(dbName='TodoApp', secretKey='todos_key_db')
+
+# !!! .select() method is like SELECT query in SQL so you must use it everywhere !!!
+
+# inserting method chaining
+user_1 = db.select('Users').insert({ 
+    'user_name': 'Ann', 
+    'user_password': 'ann_password1234' 
+})
+user_2 = db.select('Users').insert({ 
+    'user_name': 'Tom', 
+    'user_password': 'secret_pass_for_tom' 
+})
+user_3 = db.select('Users').insert({ 
+    'user_name': 'Maria', 
+    'user_password': 'poiuytrewq1234' 
+})
+user_4 = db.select('Users').insert({ 
+    'user_name': 'Timmy', 
+    'user_password': 'QPALZ<woskxm1234' 
+})
+
+# output
+print(json.dumps(user_1, indent=4))
+print(json.dumps(user_2, indent=4))
+print(json.dumps(user_3, indent=4))
+print(json.dumps(user_4, indent=4))
+```
+
+### How to use .get() and .where() methods for reading.
+
+```python
+# client.py
+from treleadb import TreleadbClient
+import json
+
+db = TreleadbClient(dbName='TodoApp', secretKey='todos_key_db')
+
+
+# Extracting all objects from Users coll
+# SELECT * FROM Users;
+users = db.select('Users').get() # -> this will return an arr
+for _ in users.data:
+    print(json.dumps(_, indent=4))
+
+
+# Extracting all objects with only spefied keys from Users coll
+# SELECT coll_1, coll_2, ... FROM Users;
+# In this case we are selecting only user_name and __id keys
+users = db.select('Users').get(user_name=True, __id=True)
+for _ in users.data:
+    print(json.dumps(_, indent=4))
+
+
+# Lets extract only the __id from users that have user_name: Tom and Maria
+# SELECT __id FROM Users WHERE user_name='' OR user_name='';
+users = db.select('Users').get(__id=True).where(
+    { 'user_name': 'Tom' }, 
+    { 'user_name': 'Maria'}
+
+    ''' .where() method has arbitrary argumnets that allows us to pass infinite objects parameters
+    
+    implimentation between OR and AND:
+
+    OR -> { 'user_name': 'Tom' }, { 'user_name': 'Ann' }, { '__id': 'b7971bc0-8e1d-4cd0-bf7d-2606cc610b79' }, ...
+    Find multiple objects that contains specified keys and values.
+
+    AND -> { 'user_name': 'Tom', '__id': '089c3e58-c26e-4cc9-b280-2943e52dc55e', ... }
+    Finds an object with specified keys and values
+
+    '''
+)
+for _ in users.data:
+    print(json.dumps(_, indent=4))
+
+
+# Lets find and object with user_name=Tom and __id=1234_poiuytrewq
+# SELECT * FROM Users WHERE user_name='Tom' AND __id='1234_poiuytrewq'; 
+users = db.select('Users').get().where({ 'user_name': 'Tom', '__id': '1234_poiuytrewq' })
+# This should be an inexisted object -> empty arr
+for _ in users.data:
+    print(json.dumps(_, indent=4))
+```
+### Update method .update() with .where() method.
+
+```python
+# client.py
+from treleadb import TreleadbClient
+import json
+
+db = TreleadbClient(dbName='TodoApp', secretKey='todos_key_db')
+
+# update user_name=Anton that has user_name=Tom
+# UPDATE Users SET user_name='Anton' WHERE user_name='Tom';
+db.select('Users').update({ 'user_name': 'Anton' }).where({ 'user_name': 'Tom' })
+
+# Lets see if update query was performed successfully
+user = db.select('Users').get().where({ 'user_name': 'Anton' })
+print(user.data)
+``` 
+
+### Delete method .delete()
+```python
+# client.py
+from treleadb import TreleadbClient
+
+db = TreleadbClient(dbName='TodoApp', secretKey='todos_key_db')
+
+# delte objects that has user_name='Anton'
+# DELETE FROM Users WHERE user_name='Anton';
+# .delete() method works like .where() OR and AND are available 
+res = db.select('Users').delete({ 'user_name': 'Anton' }) # -> return an arr
+print(res.data)
+
+
+# delte more objects
+# DELETE FROM Users WHERE user_name='Ann' OR user_name='Maria' ...;
+objs = db.select('Users').delete({ 'user_name': 'Ann' }, { 'user_name': 'Maria' })
+for _ in objs.data:
+    print(json.dumps(_, indent=4))
+
+
+# delete all objects from collection
+# DELETE FROM Users;
+# ouput will preview entire deleted objects
+del_all = db.select('Users').delete(Full=True)
+for _ in del_all.data:
+    print(json.dumps(_, indent=4))
+
+``` 

@@ -10,9 +10,9 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 
+
+
 class TreleadbClient:
-
-
     def __init__(self, dbName: str, dbPath: str = None, secretKey: str = None) -> None:
         self.__dbName = dbName
         self.__collection: str = None
@@ -61,7 +61,7 @@ class TreleadbClient:
 
 
     def getCollections(self) -> list:
-        return list(os.listdir(os.path.join(self.__dbPath, self.__dbName)))
+        return list(_.replace('.json', '') for _ in os.listdir(os.path.join(self.__dbPath, self.__dbName)))
 
 
 
@@ -90,11 +90,11 @@ class TreleadbClient:
         if (not self.__collection):
             raise Exception (f"No Collesction Has Been Selected")
         
+        collection = self.__ReadCollection__(self.__collection)
+
         if (not all(_ in list(collection['Schema'].keys()) for _ in list(keys.keys()))):
             raise Exception (f"Invalid Keys '{keys}' For Collection '{self.__collection}' In Database '{self.__dbName}'")
         
-        collection = self.__ReadCollection__(self.__collection)
-
         self.__getQuery = True
         self.__updateQuery = False
 
@@ -128,7 +128,7 @@ class TreleadbClient:
             self.data.clear()
             for _ in keys:
                 for object in collection['Data']:
-                    if (TreleadbClient().__Validate__Where__Query__Lists__(list(_.values()), list(object.values()))):
+                    if (TreleadbClient.__Validate__Where__Query__Lists__(list(_.values()), list(object.values()))):
                         _temp = {}
                         for d in dataKeys:
                             _temp[d] = object[d]
@@ -219,24 +219,27 @@ class TreleadbClient:
     
 
 
-    def delete(self, keys: dict, Full: bool = False) -> Self:
+    def delete(self, *keys: dict, Full: bool = False) -> Self:
         if (not self.__collection):
             raise Exception (f"No Collesction Has Been Selected")
         if (not len(keys)):
             self.data = []
-            return self
         
         collection = self.__ReadCollection__(self.__collection)
 
-        if (not all(_ in list(collection['Schema'].keys()) for _ in list(keys.keys()))):
-            raise Exception (f"Invalid Keys '{keys}' For Collection '{self.__collection}' In Database '{self.__dbName}'")
-        if (not Full):
-            for _ in collection['Data']:
-                for key_c, val_c in _.items():
-                    for key_del, val_del in keys.items():
-                        if (key_c == key_del and val_c == val_del):
-                            self.data.append(_)
-                            collection['Data'].remove(_)      
+        for _ in keys:
+            if (not all(_ in list(collection['Schema'].keys()) for _ in list(_.keys()))):
+                raise Exception (f"Invalid Keys '{keys}' For Collection '{self.__collection}' In Database '{self.__dbName}'")
+        
+        if (Full):
+            self.data = collection['Data']
+            collection['Data'].clear()
+        else:
+            for _ in keys:
+                for object in collection['Data']:
+                    if (TreleadbClient.__Validate__Where__Query__Lists__(list(_.values()), list(object.values()))):
+                        self.data.append(object)
+                        collection['Data'].remove(object)
 
         with open(os.path.join(self.__dbPath, self.__dbName, f'{self.__collection}.json'), 'w') as _f:
             if (self.__secretKey == None):
