@@ -3,5 +3,8 @@ migration.py
 seed.py
 
 /treleadb/__pycache__
+/build
+/dist
+/*egg*
 
 .env
