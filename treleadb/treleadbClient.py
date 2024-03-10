@@ -117,11 +117,15 @@ class TreleadbClient:
         
         collection = self.__ReadCollection__(self.__collection)
 
+
+        if (not len(self.data)):
+            return self
         if (not self.data):
             raise Exception (f"Invalid Operation In Collection '{self.__collection}' From Database '{self.__dbName}'")
         for _ in keys:
             if (not all(_ in list(collection['Schema'].keys()) for _ in list(_.keys()))):
                 raise Exception (f"Invalid Keys '{keys}' For Collection '{self.__collection}' In Database '{self.__dbName}'")
+        
         
         if (self.__getQuery):
             dataKeys = list(self.data[0].keys())

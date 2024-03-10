@@ -122,7 +122,7 @@ class Database:
 
         self.__collection = None
         self.__data = {}
-        return self
+        return self.data
 
 
 
