@@ -5,7 +5,7 @@ with open('README.md') as f:
 
 setup(
     name="treleadb",
-    version="0.0.2",
+    version="0.1.0",
     author="Trelea Marius",
     author_email="treleamarius76@gmail.com",
     description="TreleaDB object database for Python.",
