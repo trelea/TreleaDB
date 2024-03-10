@@ -44,8 +44,7 @@ todoSchema = { 'title': str, 'description': str }
 todos = mydb.setupCollection("Todos").modelSchema(todoSchema).migrate()
 
 # preview output
-# all json info is in .data attribute
-print(json.dumps(todos.data, indent=4))
+print(json.dumps(todos, indent=4))
 ```
 ```bash
 # Run this command
@@ -114,7 +113,7 @@ for _ in range(20):
 users = mydb.setupCollection('Users').modelSchema(userSchema).migrate(userSeeds)
 
 # preview Users output
-print(json.dumps(users.data, indent=4))
+print(json.dumps(users, indent=4))
 
 
 # ----------------------
@@ -143,7 +142,7 @@ for _ in range(30):
 posts = mydb.setupCollection('Posts').modelSchema(postSchema).migrate(postSeeds)
 
 # preview Posts output
-print(json.dumps(posts.data, indent=4))
+print(json.dumps(posts, indent=4))
 
 
 # -------------------------
@@ -166,7 +165,7 @@ for _ in range(40):
 comments = mydb.setupCollection('Comments').modelSchema(commentSchema).migrate(commentSeeds)
 
 # preview Comments output
-print(json.dumps(comments.data, indent=4))
+print(json.dumps(comments, indent=4))
 ```
 ```bash
 # Run this command
@@ -456,14 +455,14 @@ users = db.setupCollection('Users').modelSchema({
     'user_name': str,
     'user_password': str
 }).migrate()
-print(json.dumps(users.data, indent=4))
+print(json.dumps(users, indent=4))
 
 todos = db.setupCollection('Todos').modelSchema({
     'todo_title': str,
     'todo_description': str,
     'user_id': str
 }).migrate()
-print(json.dumps(todos.data, indent=4))
+print(json.dumps(todos, indent=4))
 ```
 ```bash
 # Run command
